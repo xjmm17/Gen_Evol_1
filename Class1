@@ -1,0 +1,66 @@
+## download data ##
+mkdir fastqc_reports ;
+mkdir sra_files ;
+prefetch --max-size 50G --option-file denv.txt ;
+mv */*.sra . ;
+fasterq-dump --split-files *.sra ;
+gzip *.fastq.gz ;
+fastqc -t 2 *.fastq.gz ;
+mv *.sra sra_files/ ;
+mv *_fastqc.html *_fastqc.zip fastqc_reports/ ;
+ls -lh ;
+
+## install programs with conda ##
+conda env -n GenEvol ;
+conda install bioconda::fastqc ;
+conda install bioconda::trimmomatic ;
+
+## clean reads ##
+trimmomatic PE -threads 2 ERR12389866_1.fastq.gz ERR12389866_2.fastq.gz ERR12389866_1_paired.fq.gz ERR12389866_1_unpaired.fq.gz ERR12389866_2_paired.fq.gz ERR12389866_2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50 ;
+
+## check quality ##
+fastqc -t 2 *_paired.fq.gz ;
+
+## spades assembly ##
+spades --pe1-1 ERR12389866_1_paired.fq.gz --pe1-2 ERR12389866_2_paired.fq.gz -t 2 -o ERR12389866_2_spades ;
+
+
+## prokka annotation ##
+prokka --kingdom Viruses --cpus 2 --prefix ERR12389866_prokka --locustag ERR12389866_prokka scaffolds.fasta ;
+prokka --kingdom Viruses --cpus 2 --proteins reference.gb --prefix ERR12389866_prokka --locustag ERR12389866_prokka scaffolds.fasta ;
+prokka --kingdom Viruses --cpus 2 --prefix ERR12389866_prokka --locustag ERR12389866_prokka scaffolds.fasta -o ERR12389866_ann  --addgenes --force ;
+
+## SECOND EXAMPLE ##
+
+## download data ##
+mkdir fastqc_reports ;
+mkdir sra_files ;
+prefetch --max-size 50G --option-file sra_accessions.txt ;
+mv */*.sra . ;
+fasterq-dump --split-files *.sra ;
+gzip *.fastq ;
+fastqc -t 2 *.fastq.gz ;
+mv *.sra sra_files/ ;
+mv *_fastqc.html *_fastqc.zip fastqc_reports/ ;
+ls -lh ;
+
+## install programs with conda ##
+conda env -n GenEvol ;
+conda install bioconda::fastqc ;
+conda install bioconda::trimmomatic ;
+
+## clean reads ##
+trimmomatic PE -threads 2 SRR18960172_1.fastq.gz SRR18960172_2.fastq.gz SRR18960172_1_paired.fq.gz SRR18960172_1_unpaired.fq.gz SRR18960172_2_paired.fq.gz SRR18960172_2_unpaired.fq.gz SLIDINGWINDOW:4:20 MINLEN:50 ;
+
+## check quality ##
+fastqc -t 2 *_paired.fq.gz ;
+
+## spades assembly ##
+spades --pe1-1 SRR18960172_1_paired.fq.gz --pe1-2 SRR18960172_2_paired.fq.gz -t 2 -o SRR18960172_spades ;
+
+
+## prokka annotation ##
+prokka --kingdom Viruses --cpus 2 --prefix SRR18960172_prokka --locustag SRR18960172_prokka scaffolds.fasta ;
+prokka --kingdom Viruses --cpus 2 --proteins reference.gb --prefix SRR18960172_prokka --locustag SRR18960172_prokka scaffolds.fasta ;
+prokka --kingdom Viruses --cpus 2 --prefix SRR18960172_prokka --locustag SRR18960172_prokka scaffolds.fasta -o SRR18960172_ann  --addgenes --force ;
+
